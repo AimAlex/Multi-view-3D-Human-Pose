@@ -193,7 +193,7 @@ for cam in cam1:
 	pointList[9] = keyPoint(keyList[30], keyList[31], keyList[32])
 	human = humanPoint(pointList)
 	human.init_cam1()
-	cam1photo[no - 1].human.append(human)
+	cam1photo[no].human.append(human)
 #print (cam1photo[47].human[0].points[0].x)
 
 #read cam2
@@ -214,7 +214,7 @@ for cam in cam2:
 	pointList[8] = keyPoint(keyList[27], keyList[28], keyList[29])
 	pointList[9] = keyPoint(keyList[30], keyList[31], keyList[32])
 	human = humanPoint(pointList)
-	cam2photo[no - 1].human.append(human)
+	cam2photo[no].human.append(human)
 
 #read cam3
 cam3photo = [photoHuman() for i in range(57)]
@@ -234,7 +234,7 @@ for cam in cam3:
 	pointList[8] = keyPoint(keyList[27], keyList[28], keyList[29])
 	pointList[9] = keyPoint(keyList[30], keyList[31], keyList[32])
 	human = humanPoint(pointList)
-	cam3photo[no - 1].human.append(human)
+	cam3photo[no].human.append(human)
 
 #transfor cam2 & cam3 to cam1
 
