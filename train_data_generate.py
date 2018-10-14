@@ -3,9 +3,17 @@ import numpy as np
 import cv2 as cv
 import math
 import sympy as sp
+import random
 
 deviation = 15.577630734654525
 subdeviation = math.sqrt(deviation * deviation / 2)
+
+def GaussianConf(wx, wy):
+	w = math.sqrt(wx * wx + wy * wy)
+	c = 1 - w / (2 * deviation)
+	return max(c, 0)
+
+
 class keyPoint:
 	def __init__(self,xx, yy, confidence):
 		self.x = xx
@@ -65,16 +73,24 @@ for cam in cam2d:
 	pointList = [1] * 10
 	keyList = cam["keypoints"]
 
-	pointList[0] = keyPoint3D(keyList[0], keyList[1], keyList[2])
-	pointList[1] = keyPoint3D(keyList[3], keyList[4], keyList[5])
-	pointList[2] = keyPoint(keyList[6], keyList[7], keyList[8])
-	pointList[3] = keyPoint(keyList[9], keyList[10], keyList[11])
-	pointList[4] = keyPoint(keyList[12], keyList[13], keyList[14])
-	pointList[5] = keyPoint(keyList[15], keyList[16], keyList[17])
-	pointList[6] = keyPoint(keyList[18], keyList[19], keyList[20])
-	pointList[7] = keyPoint(keyList[21], keyList[22], keyList[23])
-	pointList[8] = keyPoint(keyList[24], keyList[25], keyList[26])
-	pointList[9] = keyPoint(keyList[27], keyList[28], keyList[29])
+	for i in range(10):
+		if keyList[3 * i + 2] == 0:
+			pointList[i] = keyPoint(0, 0, 0)
+			continue
+		wx = random.gauss(0, subdeviation)
+		wy = random.gauss(0, subdeviation)
+		pointList[i] = keyPoint(keyList[3 * i] + wx, keyList[3 * i + 1] + wy, GaussianConf(wx, wy)) 
+
+	# pointList[0] = keyPoint(keyList[0], keyList[1], keyList[2])
+	# pointList[1] = keyPoint(keyList[3], keyList[4], keyList[5])
+	# pointList[2] = keyPoint(keyList[6], keyList[7], keyList[8])
+	# pointList[3] = keyPoint(keyList[9], keyList[10], keyList[11])
+	# pointList[4] = keyPoint(keyList[12], keyList[13], keyList[14])
+	# pointList[5] = keyPoint(keyList[15], keyList[16], keyList[17])
+	# pointList[6] = keyPoint(keyList[18], keyList[19], keyList[20])
+	# pointList[7] = keyPoint(keyList[21], keyList[22], keyList[23])
+	# pointList[8] = keyPoint(keyList[24], keyList[25], keyList[26])
+	# pointList[9] = keyPoint(keyList[27], keyList[28], keyList[29])
 	human = humanPoint(pointList)
 	human.init_cam1()
 
@@ -99,18 +115,27 @@ for cam in cam2d:
 	pointList = [1] * 10
 	keyList = cam["keypoints"]
 
-	pointList[0] = keyPoint(keyList[0], keyList[1], keyList[2])
-	pointList[1] = keyPoint(keyList[3], keyList[4], keyList[5])
-	pointList[2] = keyPoint(keyList[6], keyList[7], keyList[8])
-	pointList[3] = keyPoint(keyList[9], keyList[10], keyList[11])
-	pointList[4] = keyPoint(keyList[12], keyList[13], keyList[14])
-	pointList[5] = keyPoint(keyList[15], keyList[16], keyList[17])
-	pointList[6] = keyPoint(keyList[18], keyList[19], keyList[20])
-	pointList[7] = keyPoint(keyList[21], keyList[22], keyList[23])
-	pointList[8] = keyPoint(keyList[24], keyList[25], keyList[26])
-	pointList[9] = keyPoint(keyList[27], keyList[28], keyList[29])
+	for i in range(10):
+		if keyList[3 * i + 2] == 0:
+			pointList[i] = keyPoint(0, 0, 0)
+			continue
+		wx = random.gauss(0,subdeviation)
+		wy = random.gauss(0,subdeviation)
+		pointList[i] = keyPoint(keyList[3 * i] + wx, keyList[3 * i + 1] + wy, GaussianConf(wx, wy))
+
+	# pointList[0] = keyPoint(keyList[0], keyList[1], keyList[2])
+	# pointList[1] = keyPoint(keyList[3], keyList[4], keyList[5])
+	# pointList[2] = keyPoint(keyList[6], keyList[7], keyList[8])
+	# pointList[3] = keyPoint(keyList[9], keyList[10], keyList[11])
+	# pointList[4] = keyPoint(keyList[12], keyList[13], keyList[14])
+	# pointList[5] = keyPoint(keyList[15], keyList[16], keyList[17])
+	# pointList[6] = keyPoint(keyList[18], keyList[19], keyList[20])
+	# pointList[7] = keyPoint(keyList[21], keyList[22], keyList[23])
+	# pointList[8] = keyPoint(keyList[24], keyList[25], keyList[26])
+	# pointList[9] = keyPoint(keyList[27], keyList[28], keyList[29])
 	#print(pointList)
 	human = humanPoint(pointList)
+	#print (gt_cam1photo[1].human[0].cam2, gt_cam1photo[1].human[0].cam3)
 	#print(humanID, photo, len(gt_cam1photo[photo].human), cam["image_id"])
 	if view == 2:
 		if len(gt_cam1photo[photo].human) <= humanID:
@@ -119,11 +144,12 @@ for cam in cam2d:
 			gt_cam1photo[photo].human.insert(humanID, faker)
 		gt_cam1photo[photo].human[humanID].cam2 = human
 	else :
+		#print (gt_cam1photo[1].human[0].cam2, gt_cam1photo[1].human[0].cam3, photo, humanID)
 		if len(gt_cam1photo[photo].human) <= humanID:
 			faker = humanPoint([keyPoint(0, 0, 0) for i in range(10)])
 			faker.init_cam1()
 			gt_cam1photo[photo].human.insert(humanID, faker)
-		gt_cam1photo[photo].human[humanID].cam3 = humanID
+		gt_cam1photo[photo].human[humanID].cam3 = human
 
 
 cam3d = gdTruthJson["annotations3D"]
@@ -157,9 +183,39 @@ for cam in cam3d:
 	else:
 		gt_3dphoto[photo].human.insert(humanID, human)
 
+train_x = []
+train_y = []
+for i in range(57):
+	for j in range(len(gt_cam1photo[i].human)):
+		if j >= len(gt_3dphoto[i].human):
+			break
+		p = []
+		#print (gt_cam1photo[1].human[0].cam2, gt_cam1photo[1].human[0].cam3)
+		for k in range(10):
+			p.append(gt_cam1photo[i].human[j].points[k].x)
+			p.append(gt_cam1photo[i].human[j].points[k].y)
+			p.append(gt_cam1photo[i].human[j].points[k].conf)
+		human = gt_cam1photo[i].human[j].cam2
+		for k in range(10):
+			#print(human)
+			p.append(human.points[k].x)
+			p.append(human.points[k].y)
+			p.append(human.points[k].conf)
+		human = gt_cam1photo[i].human[j].cam3
+		for k in range(10):
+			p.append(human.points[k].x)
+			p.append(human.points[k].y)
+			p.append(human.points[k].conf)
+		train_x.append(p)
 
-
-
+		q = []
+		for k in range(10):
+			q.append(gt_3dphoto[i].human[j].points[k].x)
+			q.append(gt_3dphoto[i].human[j].points[k].y)
+			q.append(gt_3dphoto[i].human[j].points[k].z)
+		train_y.append(q)
+print (train_x)
+print (train_y)
 
 
 
