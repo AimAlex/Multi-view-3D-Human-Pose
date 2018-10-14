@@ -26,15 +26,6 @@ class photoHuman:
 	def __init__(self):
 		self.human = []
 
-class matchHuman:
-	def __init__(self, aa, bb, cc):
-		self.cam1 = aa
-		self.cam2 = bb
-		self.cam3 = cc
-
-class matchPhoto:
-	def __init__(self):
-		self.human = []
 
 #ground truth
 gdTruthFile = open("./data/camma_mvor_2018.json", "rb")
@@ -238,7 +229,6 @@ for cam in cam3:
 
 #transfor cam2 & cam3 to cam1
 
-matchPhotos = [matchPhoto() for i in range(57)]
 
 for i in range(57):
 	photo1 = cam1photo[i]
