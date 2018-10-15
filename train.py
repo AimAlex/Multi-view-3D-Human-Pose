@@ -12,6 +12,7 @@ import random
 
 deviation = 15.577630734654525
 subdeviation = math.sqrt(deviation * deviation / 2)
+torch.set_default_tensor_type('torch.DoubleTensor')
 
 def GaussianConf(wx, wy):
 	w = math.sqrt(wx * wx + wy * wy)
@@ -172,8 +173,18 @@ class MyDataset(Data.Dataset):
         self.train_y = yy
 
     def __getitem__(self, index):
-        b_x, b_y = torch.from_numpy(self.train_x[index]).double(), torch.from_numpy(self.train_y[index]).double()
-        return b_x, b_y
+    	#print(index)
+    	self.train_x[index]
+    	self.train_y[index]
+    	for i in range(30):
+    		wx = random.gauss(0, subdeviation)
+    		wy = random.gauss(0, subdeviation)
+    		self.train_x[index][3 * i] += wx
+    		self.train_x[index][3 * i + 1] += wy
+    		self.train_x[index][3 * i + 2] = GaussianConf(wx, wy)
+    	#print (self.train_x[index].shape)
+    	b_x, b_y = torch.from_numpy(self.train_x[index].astype(np.double)).double(), torch.from_numpy(self.train_y[index].astype(np.double)).double()
+    	return b_x, b_y
 
     def __len__(self):
         return len(self.train_x)
@@ -219,17 +230,16 @@ net = Net(90, 1024, 30)
 #net.cuda()
 
 dataset = MyDataset(train_x, train_y)
-train_loader = Data.DataLoader(dataset, batch_size = 5, shuffle = True)
+train_loader = Data.DataLoader(dataset, batch_size = 256, shuffle = True)
 optimizer =  torch.optim.Adam(net.parameters(), lr = 0.001)
-scheduler = torch.optim.lr_scheduler.StepLR(optimizer, step_size=50, gamma=0.7)
+scheduler = torch.optim.lr_scheduler.StepLR(optimizer, step_size=100, gamma=0.6)
 loss_function = MultiLossFunc()
 
 
 
 for t in range(200):
 	print("epoch:", t)
-	k = 0
-	num = 0
+
 	for step, (x, y) in enumerate(train_loader):
 		b_x = x#.cuda
 		b_y = y#.cuda
@@ -238,7 +248,6 @@ for t in range(200):
 		prediction = net(b_x)
 		loss = loss_function(prediction[0], prediction[1], prediction[2], b_y.double())
 		
-		k = prediction[2] - b_y
 
 		optimizer.zero_grad()
 		loss.backward()
