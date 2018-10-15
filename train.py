@@ -10,7 +10,7 @@ import math
 import sympy as sp
 import random
 
-deviation = 15.577630734654525
+deviation = 7
 subdeviation = math.sqrt(deviation * deviation / 2)
 torch.set_default_tensor_type('torch.DoubleTensor')
 
@@ -184,6 +184,7 @@ class MyDataset(Data.Dataset):
     		self.train_x[index][3 * i + 2] = GaussianConf(wx, wy)
     	#print (self.train_x[index].shape)
     	b_x, b_y = torch.from_numpy(self.train_x[index].astype(np.double)).double(), torch.from_numpy(self.train_y[index].astype(np.double)).double()
+    	#print(b_y)
     	return b_x, b_y
 
     def __len__(self):
@@ -225,17 +226,19 @@ class Net(torch.nn.Module):
 
 		return x1, x2, x3
 
-net = Net(90, 1024, 30)
+net = Net(90, 512, 30)
 #print(net)
 #net.cuda()
-
-dataset = MyDataset(train_x, train_y)
-train_loader = Data.DataLoader(dataset, batch_size = 256, shuffle = True)
+train_sum = len(train_x)
+dataset = MyDataset(train_x[: int(0.9 * train_sum)], train_y[: int(0.9 * train_sum)])
+train_loader = Data.DataLoader(dataset, batch_size = 1024, shuffle = True)
 optimizer =  torch.optim.Adam(net.parameters(), lr = 0.001)
-scheduler = torch.optim.lr_scheduler.StepLR(optimizer, step_size=100, gamma=0.6)
+scheduler = torch.optim.lr_scheduler.StepLR(optimizer, step_size=500, gamma=0.8)
 loss_function = MultiLossFunc()
 
-
+test_x = train_x[int(0.8 * train_sum): int(0.9 * train_sum)]
+test_x_save = train_x[int(0.8 * train_sum): int(0.9 * train_sum)]
+test_y = train_y[int(0.8 * train_sum): int(0.9 * train_sum)]
 
 for t in range(200):
 	print("epoch:", t)
@@ -247,10 +250,42 @@ for t in range(200):
 		#print(b_x)
 		prediction = net(b_x)
 		loss = loss_function(prediction[0], prediction[1], prediction[2], b_y.double())
-		
+		print(loss)
 
 		optimizer.zero_grad()
 		loss.backward()
 		optimizer.step()
 		scheduler.step()
+
+		if(step % 100 == 0):
+			num = len(test_y)
+			#print(num)
+			b_x = [0 for i in range(num)]
+			b_y = [0 for i in range(num)]
+			for j in range(num):
+				for i in range(30):
+					wx = random.gauss(0, subdeviation)
+					wy = random.gauss(0, subdeviation)
+					test_x[j][3 * i] = test_x_save[j][3 * i] + wx
+					test_x[j][3 * i + 1] = test_x_save[j][3 * i + 1] + wy
+					test_x[j][3 * i + 2] = GaussianConf(wx, wy)
+				b_x[j], b_y[j] = torch.from_numpy(test_x[j].astype(np.double)).double(), torch.from_numpy(test_y[j].astype(np.double)).double()
+
+			los = 0
+
+			for i in range(num):
+				test_output = net(b_x[i])
+				pre_y = test_output[2]
+				for j in range(30):
+					los += (pre_y[j] - b_y[i][j]) * (pre_y[j] - b_y[i][j])
+					#print(pre_y[j], b_y[i][j])
+			#print (los / num)
+
+
+
+
+
+
+
+
 
