@@ -12,7 +12,6 @@ import random
 
 deviation = 15.577630734654525
 subdeviation = math.sqrt(deviation * deviation / 2)
-torch.set_default_tensor_type('torch.DoubleTensor')
 
 def GaussianConf(wx, wy):
 	w = math.sqrt(wx * wx + wy * wy)
@@ -38,10 +37,6 @@ class humanPoint:
 		self.cam2 = humanPoint(points2)
 		self.cam3 = humanPoint(points3)
 
-class photoHuman:
-	def __init__(self):
-		self.human = []
-
 class keyPoint3D:
 	def __init__(self,xx, yy, zz):
 		self.x = xx
@@ -52,154 +47,92 @@ class humanPoint3D:
 	def __init__(self, Points):
 		self.points = Points
 
-class photoHuman3D:
-	def __init__(self):
-		self.human = []
+#cam_info
+camToRef = np.matrix([[-0.014959075298596,
+        	-0.57090747056747,
+        	0.82087811891685,
+        	-1955.1484101018],
+        	[-0.99444405304079,
+        	0.094047813575387,
+        	0.04728672259198,
+        	880.95591882004],
+        	[-0.10419813548242,
+        	-0.8156099979843,
+        	-0.56914240726732,
+        	1470.139912924],
+        	[0,
+        	0,
+        	0,
+        	1]])
+R2 = np.array([[-0.98275320616549,
+        	0.044883688744506,
+         	0.1793922803694],
+          	[0.184830538935,
+          	0.26891529014386,
+          	0.94526305259639],
+          	[-0.0058144344906895,
+          	0.96211746747033,
+          	-0.27257323995584]])
+R3 = np.array([[0.32853737750458,
+          	-0.53718216533788,
+          	0.77685166719607],
+          	[0.54278875050447,
+          	0.78050206600633,
+          	0.3101562465688],
+          	[-0.7729447353519,
+          	0.31976842590029,
+          	0.54800053821966]])
+t2 = np.array([-496.23761858706,
+          	-2260.7556455482,
+          	3156.0043173695])
+t3 = np.array([-2495.6127218428,
+          	-639.27778089763,
+          	908.30818963998])
+K1 = np.matrix([[538.597, 0, 315.8367],
+			[0, 538.2393, 241.9166],
+			[0, 0, 1]])
+K2 = np.matrix([[534.8386, 0, 321.2326],
+			[0, 534.4008, 243.3514],
+			[0, 0, 1]])
+K3 = np.matrix([[541.4062, 0, 323.9545],
+			[0, 540.5641, 238.6629],
+			[0, 0, 1]])
 
+T1 = np.array([[1, 0, 0, 0], [0, 1, 0, 0], [0, 0, 1, 0]])
+T2 = np.c_[R2,np.transpose([t2])]
+T3 = np.c_[R3,np.transpose([t3])]
 
 #ground truth
 gdTruthFile = open("./data/camma_mvor_2018.json", "rb")
 gdTruthJson = json.load(gdTruthFile)
 
-cam2d = gdTruthJson["annotations"]
-
-gt_cam1photo = [photoHuman() for i in range(57)]
-
-#read cam1 ground truth
-for cam in cam2d:
-	if int(cam["image_id"]/10**10) != 1:
-		#print(int(cam["image_id"] / 10**10))
-		continue
-	view = int(cam["image_id"]/10**7) % 10
-	if view != 1:
-		continue
-
-	photo = int(cam["image_id"]) % 1000
-	humanID = cam["person_id"]
-	pointList = [1] * 10
-	keyList = cam["keypoints"]
-
-	for i in range(10):
-		if keyList[3 * i + 2] == 0:
-			pointList[i] = keyPoint(0, 0, 0)
-			continue
-		wx = random.gauss(0, subdeviation)
-		wy = random.gauss(0, subdeviation)
-		pointList[i] = keyPoint(keyList[3 * i] + wx, keyList[3 * i + 1] + wy, GaussianConf(wx, wy)) 
-
-	human = humanPoint(pointList)
-	human.init_cam1()
-
-	if humanID >= len(gt_cam1photo[photo].human):
-		gt_cam1photo[photo].human.append(human)
-	else:
-		gt_cam1photo[photo].human.insert(humanID, human)
-
-#read cam2 & cam3 ground truth and match
-for cam in cam2d:
-	if int(cam["image_id"]/10**10) != 1:
-		#print(int(cam["image_id"] / 10**10))
-		continue
-	view = int(cam["image_id"]/10**7) % 10
-	if view == 1:
-		continue
-
-	photo = int(cam["image_id"]) % 1000
-	humanID = cam["person_id"]
-	if humanID < 0:
-		continue
-	pointList = [1] * 10
-	keyList = cam["keypoints"]
-
-	for i in range(10):
-		if keyList[3 * i + 2] == 0:
-			pointList[i] = keyPoint(0, 0, 0)
-			continue
-		wx = random.gauss(0,subdeviation)
-		wy = random.gauss(0,subdeviation)
-		pointList[i] = keyPoint(keyList[3 * i] + wx, keyList[3 * i + 1] + wy, GaussianConf(wx, wy))
-
-	#print(pointList)
-	human = humanPoint(pointList)
-	#print (gt_cam1photo[1].human[0].cam2, gt_cam1photo[1].human[0].cam3)
-	#print(humanID, photo, len(gt_cam1photo[photo].human), cam["image_id"])
-	if view == 2:
-		if len(gt_cam1photo[photo].human) <= humanID:
-			faker = humanPoint([keyPoint(0, 0, 0) for i in range(10)])
-			faker.init_cam1()
-			gt_cam1photo[photo].human.insert(humanID, faker)
-		gt_cam1photo[photo].human[humanID].cam2 = human
-	else :
-		#print (gt_cam1photo[1].human[0].cam2, gt_cam1photo[1].human[0].cam3, photo, humanID)
-		if len(gt_cam1photo[photo].human) <= humanID:
-			faker = humanPoint([keyPoint(0, 0, 0) for i in range(10)])
-			faker.init_cam1()
-			gt_cam1photo[photo].human.insert(humanID, faker)
-		gt_cam1photo[photo].human[humanID].cam3 = human
-
-
+#read 3d ground truth
 cam3d = gdTruthJson["annotations3D"]
 
-gt_3dphoto = [photoHuman3D() for i in range(57)]
-
-for cam in cam3d:
-	str = cam["image_ids"]
-	if str[0] != '1':
-		continue
-	#print(int(str[8:11]))
-	photo = int(str[8:11])
-	humanID = cam["person_id"]
-	pointList = [1] * 10
-	keyList = cam["keypoints3D"]
-
-	pointList[0] = keyPoint3D(keyList[0], keyList[1], keyList[2])
-	pointList[1] = keyPoint3D(keyList[4], keyList[5], keyList[6])
-	pointList[2] = keyPoint3D(keyList[8], keyList[9], keyList[10])
-	pointList[3] = keyPoint3D(keyList[12], keyList[13], keyList[14])
-	pointList[4] = keyPoint3D(keyList[16], keyList[17], keyList[18])
-	pointList[5] = keyPoint3D(keyList[20], keyList[21], keyList[22])
-	pointList[6] = keyPoint3D(keyList[24], keyList[25], keyList[26])
-	pointList[7] = keyPoint3D(keyList[28], keyList[29], keyList[30])
-	pointList[8] = keyPoint3D(keyList[32], keyList[33], keyList[34])
-	pointList[9] = keyPoint3D(keyList[36], keyList[37], keyList[38])
-
-	human = humanPoint3D(pointList)
-	if humanID >= len(gt_3dphoto[photo].human):
-		gt_3dphoto[photo].human.append(human)
-	else:
-		gt_3dphoto[photo].human.insert(humanID, human)
+gt_3dhuman = []
 
 train_x = []
 train_y = []
-for i in range(57):
-	for j in range(len(gt_cam1photo[i].human)):
-		if j >= len(gt_3dphoto[i].human):
-			break
-		p = []
-		#print (gt_cam1photo[1].human[0].cam2, gt_cam1photo[1].human[0].cam3)
-		for k in range(10):
-			p.append(gt_cam1photo[i].human[j].points[k].x)
-			p.append(gt_cam1photo[i].human[j].points[k].y)
-			p.append(gt_cam1photo[i].human[j].points[k].conf)
-		human = gt_cam1photo[i].human[j].cam2
-		for k in range(10):
-			#print(human)
-			p.append(human.points[k].x)
-			p.append(human.points[k].y)
-			p.append(human.points[k].conf)
-		human = gt_cam1photo[i].human[j].cam3
-		for k in range(10):
-			p.append(human.points[k].x)
-			p.append(human.points[k].y)
-			p.append(human.points[k].conf)
-		train_x.append(np.array(p))
 
-		q = []
-		for k in range(10):
-			q.append(gt_3dphoto[i].human[j].points[k].x)
-			q.append(gt_3dphoto[i].human[j].points[k].y)
-			q.append(gt_3dphoto[i].human[j].points[k].z)
-		train_y.append(np.array(q))
+for cam in cam3d:
+#read train_y
+	pointList = [1] * 10
+	keyList = cam["keypoints3D"]
+	p = []
+	for i in range(10):
+		p.append(keyList[4 * i])
+		p.append(keyList[4 * i + 1])
+		p.append(keyList[4 * i + 2])
+		pointList[i] = keyPoint3D(keyList[4 * i], keyPoint3D[4 * i + 1], keyPoint3D[4 * i + 2])
+	train_y.append(np.array(p))
+
+	human = humanPoint3D(pointList)
+	gt_3dhuman.append(human)
+
+	q = []
+	#todo calculate the 2d ground truth
+	
+	train_x.append(np.array(q))
 
 class MultiLossFunc(torch.nn.Module):
 	def __init__(self):
