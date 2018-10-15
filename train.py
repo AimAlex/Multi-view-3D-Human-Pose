@@ -102,6 +102,26 @@ T1 = np.array([[1, 0, 0, 0], [0, 1, 0, 0], [0, 0, 1, 0]])
 T2 = np.c_[R2,np.transpose([t2])]
 T3 = np.c_[R3,np.transpose([t3])]
 
+#calculate the 2d ground truth
+def cam2d(xx, yy, zz):
+	if int(xx) == 0 & int(yy) == 0 & int(zz) == 0:
+		return 0, 0, 0, 0, 0, 0
+	point = np.array([xx, yy, zz, 1])
+	#point = np.dot(camToRef, np.transpose([point]))
+	#cam1
+	cc1 = np.dot(T1, np.transpose([point]))
+	pp1 = np.dot(K1, cc1) / cc1[2]
+
+	#cam2
+	cc2 = np.dot(T2, np.transpose([point]))
+	pp2 = np.dot(K2, cc2) / cc2[2]
+
+	#cam3
+	cc3 = np.dot(T3, np.transpose([point]))
+	pp3 = np.dot(K3, cc3) / cc3[2]
+
+	return pp1[0], pp1[1], pp2[0], pp2[1], pp3[0], pp3[1]
+
 #ground truth
 gdTruthFile = open("./data/camma_mvor_2018.json", "rb")
 gdTruthJson = json.load(gdTruthFile)
@@ -116,22 +136,25 @@ train_y = []
 
 for cam in cam3d:
 #read train_y
-	pointList = [1] * 10
 	keyList = cam["keypoints3D"]
 	p = []
+	q = []
 	for i in range(10):
 		p.append(keyList[4 * i])
 		p.append(keyList[4 * i + 1])
 		p.append(keyList[4 * i + 2])
-		pointList[i] = keyPoint3D(keyList[4 * i], keyPoint3D[4 * i + 1], keyPoint3D[4 * i + 2])
+		point2d = cam2d(keyList[4 * i], keyList[4 * i + 1], keyList[4 * i + 2])
+		q.append(point2d[0])
+		q.append(point2d[1])
+		q.append(0)
+		q.append(point2d[2])
+		q.append(point2d[3])
+		q.append(0)
+		q.append(point2d[4])
+		q.append(point2d[5])
+		q.append(0)
+		#print(point2d[0])
 	train_y.append(np.array(p))
-
-	human = humanPoint3D(pointList)
-	gt_3dhuman.append(human)
-
-	q = []
-	#todo calculate the 2d ground truth
-	
 	train_x.append(np.array(q))
 
 class MultiLossFunc(torch.nn.Module):
@@ -221,17 +244,4 @@ for t in range(200):
 		loss.backward()
 		optimizer.step()
 		scheduler.step()
-	lo = 0
-	for j in range(10):
-		test_x = torch.from_numpy(train_x[j+40]).double()
-		test_y = torch.from_numpy(train_y[j+40]).double()
-		output = net(test_x)
-	
-	#print(test_x, test_y)
-		for i in range(30):
-			lo += (test_y[i] - output[2][i]) * (test_y[i] - output[2][i])
-	print(math.sqrt(lo / 100))
-
-
-
 
