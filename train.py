@@ -10,44 +10,15 @@ import math
 import sympy as sp
 import random
 
-deviation = 7
+deviation = 4
 subdeviation = math.sqrt(deviation * deviation / 2)
 torch.set_default_tensor_type('torch.DoubleTensor')
 
 def GaussianConf(wx, wy):
 	w = math.sqrt(wx * wx + wy * wy)
-	c = 1 - w / (4 * deviation)
+	c = 1 - w / (8 * deviation)
 	#print (max(c, 0))
 	return max(c, 0)
-
-
-class keyPoint:
-	def __init__(self,xx, yy, confidence):
-		self.x = xx
-		self.y = yy
-		self.conf = confidence
-
-class humanPoint:
-	def __init__(self, Points):
-		self.points = Points
-		self.cam2 = 0
-		self.cam3 = 0
-
-	def init_cam1(self):
-		points2 = [keyPoint(0, 0, 0) for i in range(10)]
-		points3 = [keyPoint(0, 0, 0) for i in range(10)]
-		self.cam2 = humanPoint(points2)
-		self.cam3 = humanPoint(points3)
-
-class keyPoint3D:
-	def __init__(self,xx, yy, zz):
-		self.x = xx
-		self.y = yy
-		self.z = zz
-
-class humanPoint3D:
-	def __init__(self, Points):
-		self.points = Points
 
 #cam_info
 camToRef = np.matrix([[-0.014959075298596,
@@ -230,18 +201,20 @@ class Net(torch.nn.Module):
 net = Net(90, 1024, 30)
 #print(net)
 #net.cuda()
+
 train_sum = len(train_x)
-dataset = MyDataset(train_x[: int(0.9 * train_sum)], train_y[: int(0.9 * train_sum)])
-train_loader = Data.DataLoader(dataset, batch_size = 512, shuffle = True)
-optimizer =  torch.optim.Adam(net.parameters(), lr = 0.001)
-scheduler = torch.optim.lr_scheduler.StepLR(optimizer, step_size=500, gamma=0.8)
-loss_function = MultiLossFunc()
 
 test_x = train_x[int(0.9 * train_sum): train_sum]
 test_x_save = train_x[int(0.9 * train_sum): train_sum]
 test_y = train_y[int(0.9 * train_sum): train_sum]
 
-for t in range(400):
+dataset = MyDataset(train_x[: int(0.9 * train_sum)], train_y[: int(0.9 * train_sum)])
+train_loader = Data.DataLoader(dataset, batch_size = 512, shuffle = True)
+optimizer =  torch.optim.Adam(net.parameters(), lr = 0.001)
+scheduler = torch.optim.lr_scheduler.StepLR(optimizer, step_size=200, gamma=0.8)
+loss_function = MultiLossFunc()
+
+for t in range(256):
 	print("epoch:", t)
 
 	for step, (x, y) in enumerate(train_loader):
@@ -251,7 +224,7 @@ for t in range(400):
 		#print(b_x)
 		prediction = net(b_x)
 		loss = loss_function(prediction[0], prediction[1], prediction[2], b_y.double())
-		print(loss)
+		print(math.sqrt(loss.data.numpy() / 90))
 
 		optimizer.zero_grad()
 		loss.backward()
@@ -261,8 +234,7 @@ for t in range(400):
 		if(step % 100 == 0):
 			num = len(test_y)
 			#print(num)
-			b_x = [0 for i in range(num)]
-			b_y = [0 for i in range(num)]
+			a_x = [0 for i in range(num)]
 			for j in range(num):
 				for i in range(30):
 					wx = random.gauss(0, subdeviation)
@@ -270,18 +242,17 @@ for t in range(400):
 					test_x[j][3 * i] = test_x_save[j][3 * i] + wx
 					test_x[j][3 * i + 1] = test_x_save[j][3 * i + 1] + wy
 					test_x[j][3 * i + 2] = GaussianConf(wx, wy)
-				b_x[j], b_y[j] = torch.from_numpy(test_x[j].astype(np.double)).double(), torch.from_numpy(test_y[j].astype(np.double)).double()
+				a_x[j] = torch.from_numpy(test_x[j].astype(np.double)).double()
 
 			los = 0
 
 			for i in range(num):
-				test_output = net(b_x[i])
-				pre_y = test_output[2]
+				test_output = net(a_x[i])
+				pre_y = test_output[2].data.numpy()
 				for j in range(30):
-					los += (pre_y[j] - b_y[i][j]) * (pre_y[j] - b_y[i][j])
+					los += (pre_y[j] - test_y[i][j]) * (pre_y[j] - test_y[i][j])
 					#print(pre_y[j], b_y[i][j])
-			print (los / num)
-
+			print (math.sqrt(los / (30 * num)))
 
 
 
