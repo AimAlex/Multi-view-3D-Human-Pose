@@ -16,7 +16,8 @@ torch.set_default_tensor_type('torch.DoubleTensor')
 
 def GaussianConf(wx, wy):
 	w = math.sqrt(wx * wx + wy * wy)
-	c = 1 - w / (2 * deviation)
+	c = 1 - w / (4 * deviation)
+	#print (max(c, 0))
 	return max(c, 0)
 
 
@@ -212,35 +213,35 @@ class Net(torch.nn.Module):
 		x1 = F.relu(self.fc1(x))
 		x1 = F.relu(self.fc2(x1))
 		x1 = F.relu(self.fc3(x1))
-		x1 = F.relu(self.fc4(x1))
+		x1 = self.fc4(x1)
 
 		x2 = F.relu(self.fc5(x1))
 		x2 = F.relu(self.fc6(x2))
 		x2 = F.relu(self.fc7(x2))
-		x2 = F.relu(self.fc8(x2))
+		x2 = self.fc8(x2)
 
 		x3 = F.relu(self.fc9(x2))
 		x3 = F.relu(self.fc10(x3))
 		x3 = F.relu(self.fc11(x3))
-		x3 = F.relu(self.fc12(x3))
+		x3 = self.fc12(x3)
 
 		return x1, x2, x3
 
-net = Net(90, 512, 30)
+net = Net(90, 1024, 30)
 #print(net)
 #net.cuda()
 train_sum = len(train_x)
 dataset = MyDataset(train_x[: int(0.9 * train_sum)], train_y[: int(0.9 * train_sum)])
-train_loader = Data.DataLoader(dataset, batch_size = 1024, shuffle = True)
+train_loader = Data.DataLoader(dataset, batch_size = 512, shuffle = True)
 optimizer =  torch.optim.Adam(net.parameters(), lr = 0.001)
 scheduler = torch.optim.lr_scheduler.StepLR(optimizer, step_size=500, gamma=0.8)
 loss_function = MultiLossFunc()
 
-test_x = train_x[int(0.8 * train_sum): int(0.9 * train_sum)]
-test_x_save = train_x[int(0.8 * train_sum): int(0.9 * train_sum)]
-test_y = train_y[int(0.8 * train_sum): int(0.9 * train_sum)]
+test_x = train_x[int(0.9 * train_sum): train_sum]
+test_x_save = train_x[int(0.9 * train_sum): train_sum]
+test_y = train_y[int(0.9 * train_sum): train_sum]
 
-for t in range(200):
+for t in range(400):
 	print("epoch:", t)
 
 	for step, (x, y) in enumerate(train_loader):
@@ -279,7 +280,7 @@ for t in range(200):
 				for j in range(30):
 					los += (pre_y[j] - b_y[i][j]) * (pre_y[j] - b_y[i][j])
 					#print(pre_y[j], b_y[i][j])
-			#print (los / num)
+			print (los / num)
 
 
 
