@@ -217,7 +217,7 @@ test_y = train_y[int(0.9 * train_sum): train_sum]
 dataset = MyDataset(train_x[: int(0.9 * train_sum)], train_y[: int(0.9 * train_sum)])
 train_loader = Data.DataLoader(dataset, batch_size = 512, shuffle = True)
 optimizer =  torch.optim.Adam(net.parameters(), lr = 0.001)
-scheduler = torch.optim.lr_scheduler.StepLR(optimizer, step_size=50, gamma=0.8)
+scheduler = torch.optim.lr_scheduler.StepLR(optimizer, step_size=32, gamma=0.9)
 loss_function = MultiLossFunc()
 
 for t in range(256):
@@ -260,7 +260,7 @@ for t in range(256):
 					#print("test :", pre_y[j], test_y[i][j])
 			print ("test: ", math.sqrt(los / (10 * num)))
 
-
+torch.save(net, 'model.pkl')
 
 
 
