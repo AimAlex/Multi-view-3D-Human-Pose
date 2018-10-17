@@ -10,13 +10,13 @@ import math
 import sympy as sp
 import random
 
-deviation = 4
+deviation = 5
 subdeviation = math.sqrt(deviation * deviation / 2)
 torch.set_default_tensor_type('torch.DoubleTensor')
 
 def GaussianConf(wx, wy):
 	w = math.sqrt(wx * wx + wy * wy)
-	c = 1 - w / (8 * deviation)
+	c = 1 - w / (4 * deviation)
 	#print (max(c, 0))
 	return max(c, 0)
 
@@ -136,8 +136,16 @@ class MultiLossFunc(torch.nn.Module):
 		return
 
 	def forward(self, x1, x2, x3, y):
-		los = torch.nn.MSELoss()
-		return (los(x1, y) + los(x2, y) + los(x3, y))
+		#print (x1[0].shape)
+		scale = len(x1)
+		loss = torch.pow(F.pairwise_distance(x1, y), 2) + torch.pow(F.pairwise_distance(x2, y), 2) + torch.pow(F.pairwise_distance(x3, y), 2)
+		#print (loss.shape)
+		los = loss[0]
+		for i in range(scale - 1):
+			los += loss[i + 1]
+		#print (los)
+
+		return los / scale
 
 class MyDataset(Data.Dataset):
     def __init__(self, xx, yy):
@@ -146,8 +154,6 @@ class MyDataset(Data.Dataset):
 
     def __getitem__(self, index):
     	#print(index)
-    	self.train_x[index]
-    	self.train_y[index]
     	for i in range(30):
     		wx = random.gauss(0, subdeviation)
     		wy = random.gauss(0, subdeviation)
@@ -211,7 +217,7 @@ test_y = train_y[int(0.9 * train_sum): train_sum]
 dataset = MyDataset(train_x[: int(0.9 * train_sum)], train_y[: int(0.9 * train_sum)])
 train_loader = Data.DataLoader(dataset, batch_size = 512, shuffle = True)
 optimizer =  torch.optim.Adam(net.parameters(), lr = 0.001)
-scheduler = torch.optim.lr_scheduler.StepLR(optimizer, step_size=200, gamma=0.8)
+scheduler = torch.optim.lr_scheduler.StepLR(optimizer, step_size=50, gamma=0.8)
 loss_function = MultiLossFunc()
 
 for t in range(256):
@@ -224,7 +230,7 @@ for t in range(256):
 		#print(b_x)
 		prediction = net(b_x)
 		loss = loss_function(prediction[0], prediction[1], prediction[2], b_y.double())
-		print(math.sqrt(loss.data.numpy() / 90))
+		print("train: ", math.sqrt(loss.data.numpy() / 30))
 
 		optimizer.zero_grad()
 		loss.backward()
@@ -251,8 +257,8 @@ for t in range(256):
 				pre_y = test_output[2].data.numpy()
 				for j in range(30):
 					los += (pre_y[j] - test_y[i][j]) * (pre_y[j] - test_y[i][j])
-					#print(pre_y[j], b_y[i][j])
-			print (math.sqrt(los / (30 * num)))
+					#print("test :", pre_y[j], test_y[i][j])
+			print ("test: ", math.sqrt(los / (10 * num)))
 
 
 
