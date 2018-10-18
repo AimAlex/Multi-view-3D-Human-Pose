@@ -9,6 +9,7 @@ import cv2 as cv
 import math
 import sympy as sp
 import random
+import scipy.io as sio
 
 deviation = 5
 subdeviation = math.sqrt(deviation * deviation / 2)
@@ -95,7 +96,7 @@ def cam2d(xx, yy, zz):
 
 	return pp1[0], pp1[1], pp2[0], pp2[1], pp3[0], pp3[1]
 
-#ground truth
+#ground truth mvor
 gdTruthFile = open("./data/camma_mvor_2018.json", "rb")
 gdTruthJson = json.load(gdTruthFile)
 
@@ -104,11 +105,11 @@ cam3d = gdTruthJson["annotations3D"]
 
 gt_3dhuman = []
 
-train_x = []
-train_y = []
+test_x = []
+test_y = []
 
+#read test_data on mvor
 for cam in cam3d:
-#read train_y
 	keyList = cam["keypoints3D"]
 	p = []
 	q = []
@@ -127,6 +128,185 @@ for cam in cam3d:
 		q.append(point2d[5])
 		q.append(0)
 		#print(point2d[0])
+	test_y.append(np.array(p))
+	test_x.append(np.array(q))
+
+#read human3.6M
+train36_file = sio.loadmat("./data/train_3d.mat")
+test36_file = sio.loadmat("./data/val_3d.mat")
+train36 = train36_file['data']
+test36 = test36_file['data']
+#print(test36[0][0][0].shape)
+
+train_x = []
+train_y = []
+
+for human in train36:
+	keyList = cam["keypoints3D"]
+	human36 = human[0][0]
+	#print (human36.shape)
+	p = []
+	q = []
+
+	#head
+	p.append(human36[9][0])
+	p.append(human36[9][1])
+	p.append(human36[9][2])
+	point2d = cam2d(human36[9][0], human36[9][1], human36[9][2])
+	q.append(point2d[0])
+	q.append(point2d[1])
+	q.append(0)
+	q.append(point2d[2])
+	q.append(point2d[3])
+	q.append(0)
+	q.append(point2d[4])
+	q.append(point2d[5])
+	q.append(0)
+
+	#neck
+	p.append(human36[8][0])
+	p.append(human36[8][1])
+	p.append(human36[8][2])
+	point2d = cam2d(human36[8][0], human36[8][1], human36[8][2])
+	q.append(point2d[0])
+	q.append(point2d[1])
+	q.append(0)
+	q.append(point2d[2])
+	q.append(point2d[3])
+	q.append(0)
+	q.append(point2d[4])
+	q.append(point2d[5])
+	q.append(0)
+
+	#left shoulder
+
+	p.append(human36[10][0])
+	p.append(human36[10][1])
+	p.append(human36[10][2])
+	point2d = cam2d(human36[10][0], human36[10][1], human36[10][2])
+	q.append(point2d[0])
+	q.append(point2d[1])
+	q.append(0)
+	q.append(point2d[2])
+	q.append(point2d[3])
+	q.append(0)
+	q.append(point2d[4])
+	q.append(point2d[5])
+	q.append(0)
+
+	#right shoulder 
+
+	p.append(human36[13][0])
+	p.append(human36[13][1])
+	p.append(human36[13][2])
+	point2d = cam2d(human36[13][0], human36[13][1], human36[13][2])
+	q.append(point2d[0])
+	q.append(point2d[1])
+	q.append(0)
+	q.append(point2d[2])
+	q.append(point2d[3])
+	q.append(0)
+	q.append(point2d[4])
+	q.append(point2d[5])
+	q.append(0)
+
+	#left hip
+
+	p.append(human36[3][0])
+	p.append(human36[3][1])
+	p.append(human36[3][2])
+	point2d = cam2d(human36[3][0], human36[3][1], human36[3][2])
+	q.append(point2d[0])
+	q.append(point2d[1])
+	q.append(0)
+	q.append(point2d[2])
+	q.append(point2d[3])
+	q.append(0)
+	q.append(point2d[4])
+	q.append(point2d[5])
+	q.append(0)
+
+	#right hip
+
+	p.append(human36[0][0])
+	p.append(human36[0][1])
+	p.append(human36[0][2])
+	point2d = cam2d(human36[0][0], human36[0][1], human36[0][2])
+	q.append(point2d[0])
+	q.append(point2d[1])
+	q.append(0)
+	q.append(point2d[2])
+	q.append(point2d[3])
+	q.append(0)
+	q.append(point2d[4])
+	q.append(point2d[5])
+	q.append(0)
+
+	#left elbow
+
+	p.append(human36[11][0])
+	p.append(human36[11][1])
+	p.append(human36[11][2])
+	point2d = cam2d(human36[11][0], human36[11][1], human36[11][2])
+	q.append(point2d[0])
+	q.append(point2d[1])
+	q.append(0)
+	q.append(point2d[2])
+	q.append(point2d[3])
+	q.append(0)
+	q.append(point2d[4])
+	q.append(point2d[5])
+	q.append(0)
+
+	#right elbow
+
+	p.append(human36[14][0])
+	p.append(human36[14][1])
+	p.append(human36[14][2])
+	point2d = cam2d(human36[14][0], human36[14][1], human36[14][2])
+	q.append(point2d[0])
+	q.append(point2d[1])
+	q.append(0)
+	q.append(point2d[2])
+	q.append(point2d[3])
+	q.append(0)
+	q.append(point2d[4])
+	q.append(point2d[5])
+	q.append(0)
+
+	#left wrist
+
+	p.append(human36[12][0])
+	p.append(human36[12][1])
+	p.append(human36[12][2])
+	point2d = cam2d(human36[12][0], human36[12][1], human36[12][2])
+	q.append(point2d[0])
+	q.append(point2d[1])
+	q.append(0)
+	q.append(point2d[2])
+	q.append(point2d[3])
+	q.append(0)
+	q.append(point2d[4])
+	q.append(point2d[5])
+	q.append(0)
+
+	#right wrist
+
+	p.append(human36[15][0])
+	p.append(human36[15][1])
+	p.append(human36[15][2])
+	point2d = cam2d(human36[15][0], human36[15][1], human36[15][2])
+	q.append(point2d[0])
+	q.append(point2d[1])
+	q.append(0)
+	q.append(point2d[2])
+	q.append(point2d[3])
+	q.append(0)
+	q.append(point2d[4])
+	q.append(point2d[5])
+	q.append(0)
+
+
 	train_y.append(np.array(p))
 	train_x.append(np.array(q))
 
@@ -146,6 +326,8 @@ class MultiLossFunc(torch.nn.Module):
 		#print (los)
 
 		return los / scale
+
+
 
 class MyDataset(Data.Dataset):
     def __init__(self, xx, yy):
@@ -208,13 +390,13 @@ net = Net(90, 1024, 30)
 #print(net)
 #net.cuda()
 
-train_sum = len(train_x)
+# train_sum = len(train_x)
 
-test_x = train_x[int(0.9 * train_sum): train_sum]
-test_x_save = train_x[int(0.9 * train_sum): train_sum]
-test_y = train_y[int(0.9 * train_sum): train_sum]
+# test_x = train_x[int(0.9 * train_sum): train_sum]
+# test_x_save = train_x[int(0.9 * train_sum): train_sum]
+# test_y = train_y[int(0.9 * train_sum): train_sum]
 
-dataset = MyDataset(train_x[: int(0.9 * train_sum)], train_y[: int(0.9 * train_sum)])
+dataset = MyDataset(train_x, train_y)
 train_loader = Data.DataLoader(dataset, batch_size = 512, shuffle = True)
 optimizer =  torch.optim.Adam(net.parameters(), lr = 0.001)
 scheduler = torch.optim.lr_scheduler.StepLR(optimizer, step_size=32, gamma=0.9)
