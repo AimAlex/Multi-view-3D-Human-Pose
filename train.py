@@ -10,10 +10,14 @@ import math
 import sympy as sp
 import random
 import scipy.io as sio
+from tensorboardX import SummaryWriter
 
 deviation = 10
 subdeviation = math.sqrt(deviation * deviation / 2)
 torch.set_default_tensor_type('torch.DoubleTensor')
+
+#tensor board
+writer = SummaryWriter('./tensorboard')
 
 def GaussianConf(wx, wy):
 	w = math.sqrt(wx * wx + wy * wy)
@@ -399,7 +403,7 @@ test_x_save = train_x
 dataset = MyDataset(train_x, train_y)
 train_loader = Data.DataLoader(dataset, batch_size = 512, shuffle = True, num_workers=2)
 optimizer =  torch.optim.Adam(net.parameters(), lr = 0.001)
-scheduler = torch.optim.lr_scheduler.StepLR(optimizer, step_size=50, gamma=0.9)
+scheduler = torch.optim.lr_scheduler.StepLR(optimizer, step_size=500, gamma=0.8)
 loss_function = MultiLossFunc()
 
 for t in range(200):
@@ -413,6 +417,7 @@ for t in range(200):
 		prediction = net(b_x)
 		loss = loss_function(prediction[0], prediction[1], prediction[2], b_y.double())
 		print("train: ", math.sqrt(loss.cpu().data.numpy() / 30))
+		writer.add_scalar('accuracy', math.sqrt(loss.cpu().data.numpy() / 30), step)
 
 		optimizer.zero_grad()
 		loss.backward()
@@ -441,7 +446,7 @@ for t in range(200):
 					los += (pre_y[j] - test_y[i][j]) * (pre_y[j] - test_y[i][j])
 					#print("test :", pre_y[j], test_y[i][j])
 			print ("*************test: ", math.sqrt(los / (10 * num)))
-
+writer.close()
 torch.save(net, 'model.pkl')
 
 
