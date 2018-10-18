@@ -11,7 +11,7 @@ import sympy as sp
 import random
 import scipy.io as sio
 
-deviation = 5
+deviation = 10
 subdeviation = math.sqrt(deviation * deviation / 2)
 torch.set_default_tensor_type('torch.DoubleTensor')
 
@@ -142,7 +142,6 @@ train_x = []
 train_y = []
 
 for human in train36:
-	keyList = cam["keypoints3D"]
 	human36 = human[0][0]
 	#print (human36.shape)
 	p = []
@@ -309,6 +308,8 @@ for human in train36:
 
 	train_y.append(np.array(p))
 	train_x.append(np.array(q))
+train_x = torch.from_numpy(np.array(train_x).astype(np.double)).double()
+train_y = torch.from_numpy(np.array(train_y).astype(np.double)).double()
 
 class MultiLossFunc(torch.nn.Module):
 	def __init__(self):
@@ -328,7 +329,6 @@ class MultiLossFunc(torch.nn.Module):
 		return los / scale
 
 
-
 class MyDataset(Data.Dataset):
     def __init__(self, xx, yy):
         self.train_x = xx
@@ -343,7 +343,7 @@ class MyDataset(Data.Dataset):
     		self.train_x[index][3 * i + 1] += wy
     		self.train_x[index][3 * i + 2] = GaussianConf(wx, wy)
     	#print (self.train_x[index].shape)
-    	b_x, b_y = torch.from_numpy(self.train_x[index].astype(np.double)).double(), torch.from_numpy(self.train_y[index].astype(np.double)).double()
+    	b_x, b_y = self.train_x[index], self.train_y[index]
     	#print(b_y)
     	return b_x, b_y
 
@@ -388,31 +388,31 @@ class Net(torch.nn.Module):
 
 net = Net(90, 1024, 30)
 #print(net)
-#net.cuda()
+net.cuda()
 
 # train_sum = len(train_x)
 
 # test_x = train_x[int(0.9 * train_sum): train_sum]
-# test_x_save = train_x[int(0.9 * train_sum): train_sum]
+test_x_save = train_x
 # test_y = train_y[int(0.9 * train_sum): train_sum]
 
 dataset = MyDataset(train_x, train_y)
-train_loader = Data.DataLoader(dataset, batch_size = 512, shuffle = True)
+train_loader = Data.DataLoader(dataset, batch_size = 512, shuffle = True, num_workers=2)
 optimizer =  torch.optim.Adam(net.parameters(), lr = 0.001)
-scheduler = torch.optim.lr_scheduler.StepLR(optimizer, step_size=32, gamma=0.9)
+scheduler = torch.optim.lr_scheduler.StepLR(optimizer, step_size=50, gamma=0.9)
 loss_function = MultiLossFunc()
 
-for t in range(256):
+for t in range(200):
 	print("epoch:", t)
 
 	for step, (x, y) in enumerate(train_loader):
-		b_x = x#.cuda
-		b_y = y#.cuda
+		b_x = x.cuda()
+		b_y = y.cuda()
 
 		#print(b_x)
 		prediction = net(b_x)
 		loss = loss_function(prediction[0], prediction[1], prediction[2], b_y.double())
-		print("train: ", math.sqrt(loss.data.numpy() / 30))
+		print("train: ", math.sqrt(loss.cpu().data.numpy() / 30))
 
 		optimizer.zero_grad()
 		loss.backward()
@@ -430,17 +430,17 @@ for t in range(256):
 					test_x[j][3 * i] = test_x_save[j][3 * i] + wx
 					test_x[j][3 * i + 1] = test_x_save[j][3 * i + 1] + wy
 					test_x[j][3 * i + 2] = GaussianConf(wx, wy)
-				a_x[j] = torch.from_numpy(test_x[j].astype(np.double)).double()
+				a_x[j] = torch.from_numpy(test_x[j].astype(np.double)).double().cuda()
 
 			los = 0
 
 			for i in range(num):
 				test_output = net(a_x[i])
-				pre_y = test_output[2].data.numpy()
+				pre_y = test_output[2].cpu().data.numpy()
 				for j in range(30):
 					los += (pre_y[j] - test_y[i][j]) * (pre_y[j] - test_y[i][j])
 					#print("test :", pre_y[j], test_y[i][j])
-			print ("test: ", math.sqrt(los / (10 * num)))
+			print ("*************test: ", math.sqrt(los / (10 * num)))
 
 torch.save(net, 'model.pkl')
 
