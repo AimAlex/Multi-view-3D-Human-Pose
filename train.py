@@ -15,6 +15,9 @@ from tensorboardX import SummaryWriter
 deviation = 10
 subdeviation = math.sqrt(deviation * deviation / 2)
 torch.set_default_tensor_type('torch.DoubleTensor')
+ave_x = 97 + 49
+ave_y = -573 + 127
+ave_z = 5107 - 2396
 
 #tensor board
 writer = SummaryWriter('./tensorboard')
@@ -26,22 +29,6 @@ def GaussianConf(wx, wy):
 	return max(c, 0)
 
 #cam_info
-camToRef = np.matrix([[-0.014959075298596,
-        	-0.57090747056747,
-        	0.82087811891685,
-        	-1955.1484101018],
-        	[-0.99444405304079,
-        	0.094047813575387,
-        	0.04728672259198,
-        	880.95591882004],
-        	[-0.10419813548242,
-        	-0.8156099979843,
-        	-0.56914240726732,
-        	1470.139912924],
-        	[0,
-        	0,
-        	0,
-        	1]])
 R2 = np.array([[-0.98275320616549,
         	0.044883688744506,
          	0.1793922803694],
@@ -152,10 +139,10 @@ for human in train36:
 	q = []
 
 	#head
-	p.append(human36[9][0])
-	p.append(human36[9][1])
-	p.append(human36[9][2])
-	point2d = cam2d(human36[9][0], human36[9][1], human36[9][2])
+	p.append(human36[9][0] - ave_x)
+	p.append(human36[9][1] - ave_y)
+	p.append(human36[9][2] - ave_z)
+	point2d = cam2d(human36[9][0] - ave_x, human36[9][1] - ave_y, human36[9][2] - ave_z)
 	q.append(point2d[0])
 	q.append(point2d[1])
 	q.append(0)
@@ -167,10 +154,10 @@ for human in train36:
 	q.append(0)
 
 	#neck
-	p.append(human36[8][0])
-	p.append(human36[8][1])
-	p.append(human36[8][2])
-	point2d = cam2d(human36[8][0], human36[8][1], human36[8][2])
+	p.append(human36[8][0] - ave_x)
+	p.append(human36[8][1] - ave_y)
+	p.append(human36[8][2] - ave_z)
+	point2d = cam2d(human36[8][0] - ave_x, human36[8][1] - ave_y, human36[8][2] - ave_z)
 	q.append(point2d[0])
 	q.append(point2d[1])
 	q.append(0)
@@ -183,10 +170,10 @@ for human in train36:
 
 	#left shoulder
 
-	p.append(human36[10][0])
-	p.append(human36[10][1])
-	p.append(human36[10][2])
-	point2d = cam2d(human36[10][0], human36[10][1], human36[10][2])
+	p.append(human36[10][0] - ave_x)
+	p.append(human36[10][1] - ave_y)
+	p.append(human36[10][2] - ave_z)
+	point2d = cam2d(human36[10][0] - ave_x, human36[10][1] - ave_y, human36[10][2] - ave_z)
 	q.append(point2d[0])
 	q.append(point2d[1])
 	q.append(0)
@@ -199,10 +186,10 @@ for human in train36:
 
 	#right shoulder 
 
-	p.append(human36[13][0])
-	p.append(human36[13][1])
-	p.append(human36[13][2])
-	point2d = cam2d(human36[13][0], human36[13][1], human36[13][2])
+	p.append(human36[13][0] - ave_x)
+	p.append(human36[13][1] - ave_y)
+	p.append(human36[13][2] - ave_z)
+	point2d = cam2d(human36[13][0] - ave_x, human36[13][1] - ave_y, human36[13][2] - ave_z)
 	q.append(point2d[0])
 	q.append(point2d[1])
 	q.append(0)
@@ -215,10 +202,10 @@ for human in train36:
 
 	#left hip
 
-	p.append(human36[3][0])
-	p.append(human36[3][1])
-	p.append(human36[3][2])
-	point2d = cam2d(human36[3][0], human36[3][1], human36[3][2])
+	p.append(human36[3][0] - ave_x)
+	p.append(human36[3][1] - ave_y)
+	p.append(human36[3][2] - ave_z)
+	point2d = cam2d(human36[3][0] - ave_x, human36[3][1] - ave_y, human36[3][2] - ave_z)
 	q.append(point2d[0])
 	q.append(point2d[1])
 	q.append(0)
@@ -231,10 +218,10 @@ for human in train36:
 
 	#right hip
 
-	p.append(human36[0][0])
-	p.append(human36[0][1])
-	p.append(human36[0][2])
-	point2d = cam2d(human36[0][0], human36[0][1], human36[0][2])
+	p.append(human36[0][0] - ave_x)
+	p.append(human36[0][1] - ave_y)
+	p.append(human36[0][2] - ave_z)
+	point2d = cam2d(human36[0][0] - ave_x, human36[0][1] - ave_y, human36[0][2] - ave_z)
 	q.append(point2d[0])
 	q.append(point2d[1])
 	q.append(0)
@@ -247,10 +234,10 @@ for human in train36:
 
 	#left elbow
 
-	p.append(human36[11][0])
-	p.append(human36[11][1])
-	p.append(human36[11][2])
-	point2d = cam2d(human36[11][0], human36[11][1], human36[11][2])
+	p.append(human36[11][0] - ave_x)
+	p.append(human36[11][1] - ave_y)
+	p.append(human36[11][2] - ave_z)
+	point2d = cam2d(human36[11][0] - ave_x, human36[11][1] - ave_y, human36[11][2] - ave_z)
 	q.append(point2d[0])
 	q.append(point2d[1])
 	q.append(0)
@@ -263,10 +250,10 @@ for human in train36:
 
 	#right elbow
 
-	p.append(human36[14][0])
-	p.append(human36[14][1])
-	p.append(human36[14][2])
-	point2d = cam2d(human36[14][0], human36[14][1], human36[14][2])
+	p.append(human36[14][0] - ave_x)
+	p.append(human36[14][1] - ave_y)
+	p.append(human36[14][2] - ave_z)
+	point2d = cam2d(human36[14][0] - ave_x, human36[14][1] - ave_y, human36[14][2] - ave_z)
 	q.append(point2d[0])
 	q.append(point2d[1])
 	q.append(0)
@@ -279,10 +266,10 @@ for human in train36:
 
 	#left wrist
 
-	p.append(human36[12][0])
-	p.append(human36[12][1])
-	p.append(human36[12][2])
-	point2d = cam2d(human36[12][0], human36[12][1], human36[12][2])
+	p.append(human36[12][0] - ave_x)
+	p.append(human36[12][1] - ave_y)
+	p.append(human36[12][2] - ave_z)
+	point2d = cam2d(human36[12][0] - ave_x, human36[12][1] - ave_y, human36[12][2] - ave_z)
 	q.append(point2d[0])
 	q.append(point2d[1])
 	q.append(0)
@@ -295,10 +282,10 @@ for human in train36:
 
 	#right wrist
 
-	p.append(human36[15][0])
-	p.append(human36[15][1])
-	p.append(human36[15][2])
-	point2d = cam2d(human36[15][0], human36[15][1], human36[15][2])
+	p.append(human36[15][0] - ave_x)
+	p.append(human36[15][1] - ave_y)
+	p.append(human36[15][2] - ave_z)
+	point2d = cam2d(human36[15][0] - ave_x, human36[15][1] - ave_y, human36[15][2] - ave_z)
 	q.append(point2d[0])
 	q.append(point2d[1])
 	q.append(0)
