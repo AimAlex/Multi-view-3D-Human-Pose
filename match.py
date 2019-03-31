@@ -36,11 +36,11 @@ cam3d = gdTruthJson["annotations3D"]
 
 
 #2dpose
-cam1File = open("./AlphaPose/cam1.json", "rb")
+cam1File = open("./AlphaPose/day1/cam1.json", "rb")
 cam1 = json.load(cam1File)
-cam2File = open("./AlphaPose/cam2.json", "rb")
+cam2File = open("./AlphaPose/day1/cam2.json", "rb")
 cam2 = json.load(cam2File)
-cam3File = open("./AlphaPose/cam3.json", "rb")
+cam3File = open("./AlphaPose/day1/cam3.json", "rb")
 cam3 = json.load(cam3File)
 
 #cam_info
@@ -130,7 +130,7 @@ def findLine(x, y, num):
 
 		ab = sp.symbols('ab:2')
 		EQ5 = ab[1] - med2[1]
-		EQ4 = (ab[0] - med2[0])
+		EQ4 = ab[0] - med2[0]
 		solution2 = sp.solve([EQ4,EQ5], {ab[0], xs[3]})
 		line = solution2[0][ab[0]]
 		ploy = sp.Poly(line, ab[1])
@@ -162,7 +162,7 @@ def findLine(x, y, num):
 		return ploy.coeffs()
 
 #depth image
-im_depth = cv.imread("./camma_mvor_dataset/day1/cam1/depth/000048.png", -1)
+# im_depth = cv.imread("./camma_mvor_dataset/day1/cam1/depth/000048.png", -1)
 
 #read cam1
 cam1photo = [photoHuman() for i in range(57)]
@@ -205,6 +205,7 @@ for cam in cam2:
 	pointList[8] = keyPoint(keyList[27], keyList[28], keyList[29])
 	pointList[9] = keyPoint(keyList[30], keyList[31], keyList[32])
 	human = humanPoint(pointList)
+	# print (cam["image_id"])
 	cam2photo[no].human.append(human)
 
 #read cam3
@@ -252,7 +253,7 @@ for i in range(57):
 				minihuman = human1
 		if mini < 50:
 			minihuman.cam2 = human2
-			print(mini)
+			print('camera: 2, distance %.3f' % (mini))
 
 	for human3 in photo3.human:
 		mini = 10000
@@ -270,7 +271,7 @@ for i in range(57):
 				minihuman = human1
 		if mini < 50:
 			minihuman.cam3 = human3
-			print(mini)
+			print('camera: 3, distance %.3f' % (mini))
 
 
 
