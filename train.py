@@ -1,4 +1,5 @@
 import torch
+import torch.nn as nn
 import torch.nn.functional as F
 import torch.utils.data as Data
 from torch.autograd import Variable
@@ -12,12 +13,14 @@ import random
 import scipy.io as sio
 from tensorboardX import SummaryWriter
 
-deviation = 10
+import os
+os.environ["CUDA_VISIBLE_DEVICES"] = "2"
+deviation = 50
 subdeviation = math.sqrt(deviation * deviation / 2)
 torch.set_default_tensor_type('torch.DoubleTensor')
 ave_x = 97 + 49
 ave_y = -573 + 127
-ave_z = 5107 - 2396
+ave_z = 5108 - 2398
 batchSize = 512
 #tensor board
 writer = SummaryWriter('./tensorboard')
@@ -92,7 +95,7 @@ def cam2d(xx, yy, zz):
 # gdTruthJson = json.load(gdTruthFile)
 
 #read 3d ground truth
-# cam3d = gdTruthJson["annotations3D"]
+#cam3d = gdTruthJson["annotations3D"]
 
 # gt_3dhuman = []
 
@@ -131,13 +134,15 @@ test36 = test36_file['data']
 
 train_x = []
 train_y = []
-
+# all_x = 0
+# num = 0
 for human in train36:
 	human36 = human[0][0]
-	#print (human36.shape)
 	p = []
 	q = []
-
+	# all_x += human36[9][2] + human36[8][2] + human36[10][2] + human36[13][2] + human36[3][2] + human36[0][2] + human36[11][2] + human36[14][2] + human36[12][2] + human36[15][2]
+	#print (human36.shape)
+	# num += 10
 	#head
 	p.append(human36[9][0] - ave_x)
 	p.append(human36[9][1] - ave_y)
@@ -317,13 +322,13 @@ for human in test36:
 	point2d = cam2d(human36[9][0] - ave_x, human36[9][1] - ave_y, human36[9][2] - ave_z)
 	q.append(point2d[0])
 	q.append(point2d[1])
-	q.append(0)
+	q.append(1)
 	q.append(point2d[2])
 	q.append(point2d[3])
-	q.append(0)
+	q.append(1)
 	q.append(point2d[4])
 	q.append(point2d[5])
-	q.append(0)
+	q.append(1)
 
 	#neck
 	p.append(human36[8][0] - ave_x)
@@ -332,13 +337,13 @@ for human in test36:
 	point2d = cam2d(human36[8][0] - ave_x, human36[8][1] - ave_y, human36[8][2] - ave_z)
 	q.append(point2d[0])
 	q.append(point2d[1])
-	q.append(0)
+	q.append(1)
 	q.append(point2d[2])
 	q.append(point2d[3])
-	q.append(0)
+	q.append(1)
 	q.append(point2d[4])
 	q.append(point2d[5])
-	q.append(0)
+	q.append(1)
 
 	#left shoulder
 
@@ -348,13 +353,13 @@ for human in test36:
 	point2d = cam2d(human36[10][0] - ave_x, human36[10][1] - ave_y, human36[10][2] - ave_z)
 	q.append(point2d[0])
 	q.append(point2d[1])
-	q.append(0)
+	q.append(1)
 	q.append(point2d[2])
 	q.append(point2d[3])
-	q.append(0)
+	q.append(1)
 	q.append(point2d[4])
 	q.append(point2d[5])
-	q.append(0)
+	q.append(1)
 
 	#right shoulder 
 
@@ -364,13 +369,13 @@ for human in test36:
 	point2d = cam2d(human36[13][0] - ave_x, human36[13][1] - ave_y, human36[13][2] - ave_z)
 	q.append(point2d[0])
 	q.append(point2d[1])
-	q.append(0)
+	q.append(1)
 	q.append(point2d[2])
 	q.append(point2d[3])
-	q.append(0)
+	q.append(1)
 	q.append(point2d[4])
 	q.append(point2d[5])
-	q.append(0)
+	q.append(1)
 
 	#left hip
 
@@ -380,13 +385,13 @@ for human in test36:
 	point2d = cam2d(human36[3][0] - ave_x, human36[3][1] - ave_y, human36[3][2] - ave_z)
 	q.append(point2d[0])
 	q.append(point2d[1])
-	q.append(0)
+	q.append(1)
 	q.append(point2d[2])
 	q.append(point2d[3])
-	q.append(0)
+	q.append(1)
 	q.append(point2d[4])
 	q.append(point2d[5])
-	q.append(0)
+	q.append(1)
 
 	#right hip
 
@@ -396,13 +401,13 @@ for human in test36:
 	point2d = cam2d(human36[0][0] - ave_x, human36[0][1] - ave_y, human36[0][2] - ave_z)
 	q.append(point2d[0])
 	q.append(point2d[1])
-	q.append(0)
+	q.append(1)
 	q.append(point2d[2])
 	q.append(point2d[3])
-	q.append(0)
+	q.append(1)
 	q.append(point2d[4])
 	q.append(point2d[5])
-	q.append(0)
+	q.append(1)
 
 	#left elbow
 
@@ -412,13 +417,13 @@ for human in test36:
 	point2d = cam2d(human36[11][0] - ave_x, human36[11][1] - ave_y, human36[11][2] - ave_z)
 	q.append(point2d[0])
 	q.append(point2d[1])
-	q.append(0)
+	q.append(1)
 	q.append(point2d[2])
 	q.append(point2d[3])
-	q.append(0)
+	q.append(1)
 	q.append(point2d[4])
 	q.append(point2d[5])
-	q.append(0)
+	q.append(1)
 
 	#right elbow
 
@@ -428,13 +433,13 @@ for human in test36:
 	point2d = cam2d(human36[14][0] - ave_x, human36[14][1] - ave_y, human36[14][2] - ave_z)
 	q.append(point2d[0])
 	q.append(point2d[1])
-	q.append(0)
+	q.append(1)
 	q.append(point2d[2])
 	q.append(point2d[3])
-	q.append(0)
+	q.append(1)
 	q.append(point2d[4])
 	q.append(point2d[5])
-	q.append(0)
+	q.append(1)
 
 	#left wrist
 
@@ -444,13 +449,13 @@ for human in test36:
 	point2d = cam2d(human36[12][0] - ave_x, human36[12][1] - ave_y, human36[12][2] - ave_z)
 	q.append(point2d[0])
 	q.append(point2d[1])
-	q.append(0)
+	q.append(1)
 	q.append(point2d[2])
 	q.append(point2d[3])
-	q.append(0)
+	q.append(1)
 	q.append(point2d[4])
 	q.append(point2d[5])
-	q.append(0)
+	q.append(1)
 
 	#right wrist
 
@@ -460,13 +465,13 @@ for human in test36:
 	point2d = cam2d(human36[15][0] - ave_x, human36[15][1] - ave_y, human36[15][2] - ave_z)
 	q.append(point2d[0])
 	q.append(point2d[1])
-	q.append(0)
+	q.append(1)
 	q.append(point2d[2])
 	q.append(point2d[3])
-	q.append(0)
+	q.append(1)
 	q.append(point2d[4])
 	q.append(point2d[5])
-	q.append(0)
+	q.append(1)
 
 
 	valid_y.append(np.array(p))
@@ -474,7 +479,7 @@ for human in test36:
 valid_x = torch.from_numpy(np.array(valid_x).astype(np.double)).double()
 valid_y = torch.from_numpy(np.array(valid_y).astype(np.double)).double()
 
-
+# print (all_x/num)
 class MultiLossFunc(torch.nn.Module):
 	def __init__(self):
 		super(MultiLossFunc, self).__init__()
@@ -506,7 +511,7 @@ class MyDataset(Data.Dataset):
     		self.train_x[index][3 * i] += wx
     		self.train_x[index][3 * i + 1] += wy
     		self.train_x[index][3 * i + 2] = GaussianConf(wx, wy)
-    	#print (self.train_x[index].shape)
+    	# print(self.train_x[index][3 * i + 2])
     	b_x, b_y = self.train_x[index], self.train_y[index]
     	#print(b_y)
     	return b_x, b_y
@@ -517,35 +522,37 @@ class MyDataset(Data.Dataset):
 class Net(torch.nn.Module):
 	def __init__(self, n_feature, n_hidden, n_output):
 		super(Net, self).__init__()
-		self.fc1 = torch.nn.Linear(n_feature, n_hidden)
-		self.fc2 = torch.nn.Linear(n_hidden, n_hidden)
-		self.fc3 = torch.nn.Linear(n_hidden, n_hidden)
-		self.fc4 = torch.nn.Linear(n_hidden, n_output)
+		self.fc1 = nn.Sequential(nn.Linear(n_feature, n_hidden), nn.BatchNorm1d(n_hidden), nn.ReLU(True))
+		self.fc2 = nn.Sequential(nn.Linear(n_hidden, n_hidden), nn.BatchNorm1d(n_hidden), nn.ReLU(True))
+		self.fc3 = nn.Sequential(nn.Linear(n_hidden, n_hidden), nn.BatchNorm1d(n_hidden), nn.ReLU(True))
+		self.fc4 = nn.Linear(n_hidden, n_output)
 
-		self.fc5 = torch.nn.Linear(n_output, n_hidden)
-		self.fc6 = torch.nn.Linear(n_hidden, n_hidden)
-		self.fc7 = torch.nn.Linear(n_hidden, n_hidden)
+		self.fc5 = nn.Sequential(nn.Linear(n_output + n_feature, n_hidden), nn.BatchNorm1d(n_hidden), nn.ReLU(True))
+		self.fc6 = nn.Sequential(nn.Linear(n_hidden, n_hidden), nn.BatchNorm1d(n_hidden), nn.ReLU(True))
+		self.fc7 = nn.Sequential(nn.Linear(n_hidden, n_hidden), nn.BatchNorm1d(n_hidden), nn.ReLU(True))
 		self.fc8 = torch.nn.Linear(n_hidden, n_output)
 
-		self.fc9 = torch.nn.Linear(n_output, n_hidden)
-		self.fc10 = torch.nn.Linear(n_hidden, n_hidden)
-		self.fc11 = torch.nn.Linear(n_hidden, n_hidden)
+		self.fc9 = nn.Sequential(nn.Linear(n_output + n_feature, n_hidden), nn.BatchNorm1d(n_hidden), nn.ReLU(True))
+		self.fc10 = nn.Sequential(nn.Linear(n_hidden, n_hidden), nn.BatchNorm1d(n_hidden), nn.ReLU(True))
+		self.fc11 = nn.Sequential(nn.Linear(n_hidden, n_hidden), nn.BatchNorm1d(n_hidden), nn.ReLU(True))
 		self.fc12 = torch.nn.Linear(n_hidden, n_output)
 
 	def forward(self, x):
-		x1 = F.relu(self.fc1(x))
-		x1 = F.relu(self.fc2(x1))
-		x1 = F.relu(self.fc3(x1))
+		x1 = self.fc1(x)
+		x1 = self.fc2(x1)
+		x1 = self.fc3(x1)
 		x1 = self.fc4(x1)
 
-		x2 = F.relu(self.fc5(x1))
-		x2 = F.relu(self.fc6(x2))
-		x2 = F.relu(self.fc7(x2))
+		x2 = torch.cat((x1, x), 1)
+		x2 = self.fc5(x2)
+		x2 = self.fc6(x2)
+		x2 = self.fc7(x2)
 		x2 = self.fc8(x2)
 
-		x3 = F.relu(self.fc9(x2))
-		x3 = F.relu(self.fc10(x3))
-		x3 = F.relu(self.fc11(x3))
+		x3 = torch.cat((x2, x), 1)
+		x3 = self.fc9(x3)
+		x3 = self.fc10(x3)
+		x3 = self.fc11(x3)
 		x3 = self.fc12(x3)
 
 		return x1, x2, x3
@@ -563,9 +570,9 @@ test_x_save = train_x
 dataset = MyDataset(train_x, train_y)
 validset = MyDataset(valid_x, valid_y)
 train_loader = Data.DataLoader(dataset, batch_size = batchSize, shuffle = True, num_workers=2)
-valid_loader = Data.DataLoader(validset, batch_size = 4, shuffle = False, num_workers=2)
+valid_loader = Data.DataLoader(validset, batch_size = 1024, shuffle = False, num_workers=2)
 optimizer =  torch.optim.Adam(net.parameters(), lr = 0.001)
-scheduler = torch.optim.lr_scheduler.StepLR(optimizer, step_size=500, gamma=0.95)
+scheduler = torch.optim.lr_scheduler.StepLR(optimizer, step_size=600, gamma=0.97)
 loss_function = MultiLossFunc()
 running_loss = 0.0
 for t in range(200):
@@ -592,6 +599,7 @@ for t in range(200):
 
 	correct = 0
 	total = 0
+	net.eval()
 	for step, (x, y) in enumerate(valid_loader):
 		b_x = x.cuda()
 		b_y = y.cuda()
@@ -601,7 +609,7 @@ for t in range(200):
 		total += 1
 		correct += math.sqrt(torch.mean(loss).cpu().data.numpy())
 	print ("*************test: ", correct / (total))
-        
+	net.train()
 #     num = len(test_y)
 # 	#print(num)
 #     a_x = [0 for i in range(num)]
@@ -624,7 +632,7 @@ for t in range(200):
 # 			#print("test :", pre_y[j], test_y[i][j])
 # 	print ("*************test: ", math.sqrt(los / (10 * num)))
 writer.close()
-torch.save(net, 'model.pkl')
+torch.save(net, 'model_ao.pkl')
 
 
 

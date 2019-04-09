@@ -3,7 +3,7 @@ import numpy as np
 import cv2 as cv
 import math
 import sympy as sp
-
+import pickle
 class keyPoint:
 	def __init__(self,xx, yy, confidence):
 		self.x = xx
@@ -273,35 +273,56 @@ for i in range(57):
 			minihuman.cam3 = human3
 			print('camera: 3, distance %.3f' % (mini))
 
+camList = []
 
-
+for day in cam1photo:
+	humanList = []
+	for human in day.human:
+		cam2List = human.cam2
+		cam3List = human.cam3
+		pointList = []
+		for i in range(10):
+			pointList.append(human.points[i].x)
+			pointList.append(human.points[i].y)
+			pointList.append(human.points[i].conf)
+			pointList.append(cam2List.points[i].x)
+			pointList.append(cam2List.points[i].y)
+			pointList.append(cam2List.points[i].conf)
+			pointList.append(cam3List.points[i].x)
+			pointList.append(cam3List.points[i].y)
+			pointList.append(cam3List.points[i].conf)
+		humanList.append(pointList)
+	camList.append(humanList)
+file = open('match_result', 'wb')
+pickle.dump(camList, file)
+file.close()
 
 #trans ref to cam1
-X  = np.zeros(4)
-for cam in cam3d:
-	if cam["image_ids"] != "10010000048_10020000048_10030000048":
-		continue
-	for i in range(3):
-		X[i] = cam["keypoints3D"][i]
+# X  = np.zeros(4)
+# for cam in cam3d:
+# 	if cam["image_ids"] != "10010000048_10020000048_10030000048":
+# 		continue
+# 	for i in range(3):
+# 		X[i] = cam["keypoints3D"][i]
 	
-X[3] = 1
-#cam1True = np.dot(camToRef.I, np.transpose([X]))
-#trans cam1 to 2d
+# X[3] = 1
+# #cam1True = np.dot(camToRef.I, np.transpose([X]))
+# #trans cam1 to 2d
 
-Result = np.dot(np.dot(K1, T1), np.transpose([X]))
-#print(Result)
+# Result = np.dot(np.dot(K1, T1), np.transpose([X]))
+# #print(Result)
 
-k = np.zeros(3)
-kk = np.zeros(3)
-counter = 1
-for cam in cam1:
-	if cam["image_id"] != "000048.png" :
-		continue
-	k[0:2] = cam["keypoints"][0:2]
-	break
-k[2] = 1
-s = im_depth[int(round(k[0]))][int(round(k[1]))]
-#print (s * k)
+# k = np.zeros(3)
+# kk = np.zeros(3)
+# counter = 1
+# for cam in cam1:
+# 	if cam["image_id"] != "000048.png" :
+# 		continue
+# 	k[0:2] = cam["keypoints"][0:2]
+# 	break
+# k[2] = 1
+# s = im_depth[int(round(k[0]))][int(round(k[1]))]
+# #print (s * k)
 
 
 
